@@ -5,98 +5,33 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Airo Intelligence</title>
 <style>
-  body {
-    margin:0;
-    font-family: Arial, sans-serif;
-    background: linear-gradient(135deg,#001f3f,#004080,#0074D9);
-    color:white;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
-  }
-  #chat-container {
-    width:90%;
-    max-width:700px;
-    background: rgba(0,20,50,0.85);
-    padding:20px;
-    border-radius:15px;
-    backdrop-filter:blur(5px);
-    display:flex;
-    flex-direction:column;
-    box-shadow:0 0 25px rgba(0,0,0,0.5);
-  }
-  #header {
-    text-align:center;
-    font-size:28px;
-    font-weight:bold;
-    margin-bottom:10px;
-    color:#33bbff;
-  }
-  #messages {
-    flex:1;
-    overflow-y:auto;
-    padding:15px;
-    background:#002244;
-    border-radius:10px;
-    margin-bottom:10px;
-  }
-  .msg {
-    margin-bottom:12px;
-    padding:10px 14px;
-    border-radius:10px;
-    max-width:80%;
-    line-height:1.3;
-    white-space:pre-wrap;
-    transition: all 0.2s ease;
-  }
-  .user {
-    background: #0066cc;
-    margin-left:auto;
-  }
-  .bot {
-    background: #003366;
-    margin-right:auto;
-  }
-  #input-area {
-    display:flex;
-    gap:10px;
-  }
-  #userInput {
-    flex:1;
-    padding:12px;
-    border-radius:8px;
-    border:none;
-    background:#004080;
-    color:white;
-  }
-  button {
-    padding:12px 18px;
-    border:none;
-    border-radius:8px;
-    background:#0099ff;
-    color:white;
-    cursor:pointer;
-  }
-  button:hover {
-    background:#33bbff;
-  }
+body {margin:0;font-family:Arial,sans-serif;background:linear-gradient(135deg,#001f3f,#004080,#0074D9);color:white;display:flex;justify-content:center;align-items:center;height:100vh;}
+#chat-container {width:90%;max-width:700px;background:rgba(0,20,50,0.85);padding:20px;border-radius:15px;backdrop-filter:blur(5px);display:flex;flex-direction:column;box-shadow:0 0 25px rgba(0,0,0,0.5);}
+#header {text-align:center;font-size:28px;font-weight:bold;margin-bottom:10px;color:#33bbff;}
+#messages {flex:1;overflow-y:auto;padding:15px;background:#002244;border-radius:10px;margin-bottom:10px;}
+.msg {margin-bottom:12px;padding:10px 14px;border-radius:10px;max-width:80%;line-height:1.3;white-space:pre-wrap;transition:all 0.2s ease;}
+.user {background:#0066cc;margin-left:auto;}
+.bot {background:#003366;margin-right:auto;}
+#input-area {display:flex;gap:10px;}
+#userInput {flex:1;padding:12px;border-radius:8px;border:none;background:#004080;color:white;}
+button {padding:12px 18px;border:none;border-radius:8px;background:#0099ff;color:white;cursor:pointer;}
+button:hover {background:#33bbff;}
 </style>
 </head>
 <body>
 
 <div id="chat-container">
-  <div id="header">Airo Intelligence</div>
-  <div id="messages"></div>
-  <div id="input-area">
-    <input id="userInput" placeholder="Ask Airo Intelligence about science, tech, history... Swearing/sexual content allowed, no personal info" autocomplete="off">
-    <button onclick="sendMessage()">Send</button>
-  </div>
+<div id="header">Airo Intelligence</div>
+<div id="messages"></div>
+<div id="input-area">
+<input id="userInput" placeholder="Ask Airo Intelligence anything..." autocomplete="off">
+<button onclick="sendMessage()">Send</button>
+</div>
 </div>
 
 <script>
 // --------------------
-// 200 FAQ entries (first 50 shown; extend later)
+// 50 premade FAQs (extendable)
 // --------------------
 const FAQ = {
 "what is airo intelligence":"Airo Intelligence is your intelligent helper for general knowledge and FAQs.",
@@ -112,7 +47,8 @@ const FAQ = {
 "what is cpu":"A CPU executes instructions inside your computer.",
 "what is ram":"RAM is temporary memory used by programs.",
 "what is ssd":"An SSD is fast storage with no moving parts.",
-"why is sky blue":"Air scatters blue light more efficiently than other colors.",
+"why is the sky blue":"Air scatters blue light more efficiently than other colors.",
+"why is the sky blue?":"Air scatters blue light more efficiently than other colors.",
 "what is vpn":"A VPN encrypts your internet connection for privacy.",
 "what is dns":"DNS converts domain names into IP addresses.",
 "what is router":"A router directs network traffic.",
@@ -141,7 +77,11 @@ const FAQ = {
 "what is fps":"FPS means frames per second in games.",
 "what is ui":"UI means User Interface.",
 "what is ux":"UX means User Experience.",
-"what is api":"An API lets programs communicate."
+"what is api":"An API lets programs communicate.",
+"why does it rain":"Rain occurs when condensed water vapor falls from clouds.",
+"why does it rain?":"Rain occurs when condensed water vapor falls from clouds.",
+"how does photosynthesis work":"Photosynthesis converts sunlight, CO2, and water into energy for plants.",
+"how does photosynthesis work?":"Photosynthesis converts sunlight, CO2, and water into energy for plants."
 };
 
 // --------------------
@@ -149,9 +89,9 @@ const FAQ = {
 // --------------------
 function containsPersonalInfo(text){
   const patterns = [
-    /\b\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}\b/, // dates
-    /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/, // IP
-    /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i // email
+    /\b\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}\b/,
+    /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/,
+    /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i
   ];
   return patterns.some(p=>p.test(text));
 }
@@ -168,11 +108,40 @@ function addMessage(text,sender="bot"){
 }
 
 // --------------------
+// Fetch DuckDuckGo
+// --------------------
+async function fetchDuck(query){
+  try{
+    const url="https://api.duckduckgo.com/?q="+encodeURIComponent(query)+"&format=json&no_html=1&skip_disambig=1";
+    const res=await fetch(url);
+    if(!res.ok) return null;
+    const data=await res.json();
+    if(data.AbstractText) return data.AbstractText;
+    if(data.RelatedTopics && data.RelatedTopics.length>0) return data.RelatedTopics[0].Text;
+    return null;
+  }catch(e){return null;}
+}
+
+// --------------------
+// Fetch Wikipedia fallback
+// --------------------
+async function fetchWiki(query){
+  try{
+    const url="https://en.wikipedia.org/api/rest_v1/page/summary/"+encodeURIComponent(query);
+    const res=await fetch(url);
+    if(!res.ok) return null;
+    const data=await res.json();
+    if(data.extract) return data.extract;
+    return null;
+  }catch(e){return null;}
+}
+
+// --------------------
 // Send message
 // --------------------
 async function sendMessage(){
   const input=document.getElementById("userInput");
-  let text=input.value.trim();
+  const text=input.value.trim();
   if(!text) return;
   input.value="";
 
@@ -185,39 +154,30 @@ async function sendMessage(){
 
   const cleaned=text.toLowerCase().replace(/[^a-z0-9 ]/g,"");
 
-  // 1) FAQ
+  // FAQ check
   if(FAQ[cleaned]){
     addMessage(FAQ[cleaned],"bot");
     return;
   }
 
-  // 2) Wikipedia fallback using MediaWiki extracts API
-  addMessage("Airo Intelligence is loading…","bot");
+  addMessage("Airo Intelligence is loading...","bot");
 
-  try{
-    const apiUrl="https://en.wikipedia.org/w/api.php?action=query&prop=extracts&explaintext=true&format=json&titles="+encodeURIComponent(cleaned)+"&origin=*";
-    const res = await fetch(apiUrl);
-    if(res.ok){
-      const data = await res.json();
-      const pages = data.query.pages;
-      const page = pages[Object.keys(pages)[0]];
-      if(page && page.extract){
-        addMessage(page.extract+"\n\n(Read more: https://en.wikipedia.org/?curid="+page.pageid+")","bot");
-      }else{
-        addMessage("Airo Intelligence could not find information on that topic.","bot");
-      }
-    }else{
-      addMessage("Airo Intelligence could not find information on that topic.","bot");
-    }
-  }catch(e){
-    addMessage("Airo Intelligence encountered an error fetching Wikipedia.","bot");
-  }
+  // DuckDuckGo first
+  let answer=await fetchDuck(text);
+
+  // Fallback Wikipedia
+  if(!answer) answer=await fetchWiki(text);
+
+  if(!answer) answer="Airo Intelligence could not find information on that topic.";
+
+  addMessage(answer,"bot");
 }
 
-// Enter key support
+// Enter key
 document.getElementById("userInput").addEventListener("keypress",function(e){
   if(e.key==="Enter") sendMessage();
 });
 </script>
+
 </body>
 </html>
