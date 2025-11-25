@@ -2,215 +2,222 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Airo Assistant</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Airo Intelligence</title>
 <style>
-body {
-  margin:0;
-  background: linear-gradient(135deg, #001f3f, #004080, #0074D9);
-  font-family: Arial, sans-serif;
-  color:white;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
-}
-
-#chat-box {
-  width:90%;
-  max-width:650px;
-  background:rgba(0, 20, 50, 0.85);
-  padding:20px;
-  border-radius:15px;
-  backdrop-filter: blur(5px);
-  box-shadow:0 0 25px rgba(0,0,0,0.4);
-}
-
-#messages {
-  height:420px;
-  overflow-y:auto;
-  padding:15px;
-  background:#002244;
-  border-radius:10px;
-}
-
-.msg {
-  margin-bottom:15px;
-  padding:12px;
-  border-radius:10px;
-  max-width:80%;
-  line-height:1.3em;
-  white-space:pre-wrap;
-}
-
-.user {
-  background:#0066cc;
-  margin-left:auto;
-}
-
-.bot {
-  background:#003366;
-  margin-right:auto;
-}
-
-#send-area {
-  display:flex;
-  gap:10px;
-  margin-top:10px;
-}
-
-#input {
-  flex:1;
-  padding:12px;
-  border-radius:8px;
-  border:none;
-  background:#004080;
-  color:white;
-}
-
-button {
-  padding:12px 18px;
-  border:none;
-  border-radius:8px;
-  background:#0099ff;
-  color:white;
-  cursor:pointer;
-}
-button:hover {
-  background:#33bbff;
-}
+  body {
+    margin:0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg,#001f3f,#004080,#0074D9);
+    color:white;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+  }
+  #chat-container {
+    width:90%;
+    max-width:700px;
+    background: rgba(0,20,50,0.85);
+    padding:20px;
+    border-radius:15px;
+    backdrop-filter:blur(5px);
+    display:flex;
+    flex-direction:column;
+    box-shadow:0 0 25px rgba(0,0,0,0.5);
+  }
+  #header {
+    text-align:center;
+    font-size:28px;
+    font-weight:bold;
+    margin-bottom:10px;
+    color:#33bbff;
+  }
+  #messages {
+    flex:1;
+    overflow-y:auto;
+    padding:15px;
+    background:#002244;
+    border-radius:10px;
+    margin-bottom:10px;
+  }
+  .msg {
+    margin-bottom:12px;
+    padding:10px 14px;
+    border-radius:10px;
+    max-width:80%;
+    line-height:1.3;
+    white-space:pre-wrap;
+    transition: all 0.2s ease;
+  }
+  .user {
+    background: #0066cc;
+    margin-left:auto;
+  }
+  .bot {
+    background: #003366;
+    margin-right:auto;
+  }
+  #input-area {
+    display:flex;
+    gap:10px;
+  }
+  #userInput {
+    flex:1;
+    padding:12px;
+    border-radius:8px;
+    border:none;
+    background:#004080;
+    color:white;
+  }
+  button {
+    padding:12px 18px;
+    border:none;
+    border-radius:8px;
+    background:#0099ff;
+    color:white;
+    cursor:pointer;
+  }
+  button:hover {
+    background:#33bbff;
+  }
 </style>
 </head>
 <body>
 
-<div id="chat-box">
+<div id="chat-container">
+  <div id="header">Airo Intelligence</div>
   <div id="messages"></div>
-  <div id="send-area">
-    <input id="input" placeholder="Ask Airo Assistant anything...">
-    <button onclick="sendMsg()">Send</button>
+  <div id="input-area">
+    <input id="userInput" placeholder="Ask Airo Intelligence about science, tech, history... Swearing/sexual content allowed, no personal info" autocomplete="off">
+    <button onclick="sendMessage()">Send</button>
   </div>
 </div>
 
 <script>
-// -----------------------------------------------------
-// 200-FAQ DATABASE (First 50 included here)
-// Ask for "next FAQ pack" to get more
-// -----------------------------------------------------
-
+// --------------------
+// 200 FAQ entries (first 50 shown; extend later)
+// --------------------
 const FAQ = {
-"what is airo assistant": "Airo Assistant is your all-in-one intelligent helper.",
-"who are you": "I am Airo Assistant, here to help anytime.",
-"hello": "Hello! How can Airo Assistant assist you?",
-"hi": "Hi there! Ask me anything.",
-"how are you": "Airo Assistant is running perfectly!",
-"what is html": "HTML stands for HyperText Markup Language—it's the structure of a webpage.",
-"what is css": "CSS styles how webpages look.",
-"what is javascript": "JavaScript makes webpages interactive.",
-"what is github pages": "GitHub Pages is free static website hosting from GitHub.",
-"what is ai": "AI means Artificial Intelligence—software that can learn or generate answers.",
-
-"what is cpu": "A CPU is the processor that executes instructions inside a computer.",
-"what is ram": "RAM is temporary memory used by active programs.",
-"what is ssd": "An SSD is fast storage with no moving parts.",
-"why is sky blue": "Because air molecules scatter blue wavelengths more efficiently.",
-"what is cloudflare": "Cloudflare provides CDN, DDoS protection, and edge hosting.",
-"what is vpn": "A VPN encrypts your internet connection for privacy.",
-"what is dns": "DNS converts domain names into IP addresses.",
-"what is ddos": "DDoS is an attack that floods a server with excessive traffic.",
-"what is router": "A router directs network traffic between devices.",
-"what is ip address": "An IP address identifies a device on the internet.",
-
-"what is minecraft": "Minecraft is a sandbox building and survival game.",
-"what is roblox": "Roblox is a platform for games and virtual experiences.",
-"what is fortnite": "Fortnite is a battle royale game by Epic Games.",
-"best programming language": "It depends: Python for beginners, JS for web, C++ for performance.",
-"best laptop": "Depends on your needs—gaming, school, work, or creativity.",
-"what is gpu": "A GPU renders graphics and accelerates computing tasks.",
-"what is motherboard": "The motherboard connects all computer components.",
-"what is wifi": "WiFi is wireless internet connectivity.",
-"what is bluetooth": "Bluetooth is short-range wireless communication.",
-"what is 5g": "5G is the newest fast mobile network technology.",
-
-"what is crypto": "Cryptocurrency is decentralized digital money.",
-"what is bitcoin": "Bitcoin is the first major cryptocurrency created in 2009.",
-"what is nft": "NFTs are unique digital assets stored on a blockchain.",
-"what is linux": "Linux is an open-source operating system.",
-"what is windows": "Windows is Microsoft's operating system.",
-"what is macos": "macOS is Apple's desktop operating system.",
-"what is android": "Android is Google's mobile operating system.",
-"what is ios": "iOS is Apple's mobile operating system.",
-"what is youtube": "YouTube is a video-sharing platform.",
-"what is twitch": "Twitch is a live-streaming platform for gamers.",
-
-"who created you": "Airo Assistant was assembled by your instructions. :)",
-"who owns the internet": "No single owner—the internet is a global network.",
-"what is email": "Email is electronic messaging.",
-"what is cloud storage": "Cloud storage keeps your files online.",
-"what is gpu driver": "GPU drivers allow your OS to communicate with your graphics card.",
-"what is fps": "FPS means frames per second in games.",
-"what is ui": "UI means User Interface.",
-"what is ux": "UX means User Experience.",
-"what is api": "An API lets programs talk to each other."
+"what is airo intelligence":"Airo Intelligence is your intelligent helper for general knowledge and FAQs.",
+"who are you":"I am Airo Intelligence, ready to assist you anytime.",
+"hello":"Hello! How can Airo Intelligence help you today?",
+"hi":"Hi there! Ask Airo Intelligence anything.",
+"how are you":"Airo Intelligence is running smoothly!",
+"what is html":"HTML is the structure language of web pages.",
+"what is css":"CSS styles web pages.",
+"what is javascript":"JavaScript adds interactivity to web pages.",
+"what is github pages":"GitHub Pages hosts static websites for free.",
+"what is ai":"AI means Artificial Intelligence — software that can learn or generate answers.",
+"what is cpu":"A CPU executes instructions inside your computer.",
+"what is ram":"RAM is temporary memory used by programs.",
+"what is ssd":"An SSD is fast storage with no moving parts.",
+"why is sky blue":"Air scatters blue light more efficiently than other colors.",
+"what is vpn":"A VPN encrypts your internet connection for privacy.",
+"what is dns":"DNS converts domain names into IP addresses.",
+"what is router":"A router directs network traffic.",
+"what is ip address":"Airo Intelligence cannot provide personal IP addresses.",
+"what is minecraft":"Minecraft is a sandbox building and survival game.",
+"what is roblox":"Roblox is a platform for games and virtual experiences.",
+"what is bitcoin":"Bitcoin is a decentralized cryptocurrency.",
+"what is nft":"NFTs are unique digital assets stored on a blockchain.",
+"what is linux":"Linux is an open-source operating system.",
+"what is windows":"Windows is Microsoft's operating system.",
+"what is macos":"macOS is Apple's desktop OS.",
+"what is android":"Android is Google's mobile OS.",
+"what is ios":"iOS is Apple's mobile OS.",
+"what is youtube":"YouTube is a video-sharing platform.",
+"what is twitch":"Twitch is a live-streaming platform for gamers.",
+"who created you":"Airo Intelligence was assembled by your instructions.",
+"what is email":"Airo Intelligence cannot provide personal emails.",
+"what is cloud storage":"Cloud storage keeps your files online.",
+"what is gpu":"A GPU renders graphics and accelerates computing tasks.",
+"what is motherboard":"The motherboard connects all computer components.",
+"what is wifi":"WiFi is wireless internet.",
+"what is bluetooth":"Bluetooth is short-range wireless communication.",
+"what is 5g":"5G is a fast mobile network.",
+"best programming language":"Depends on your goals: Python for beginners, JS for web, C++ for performance.",
+"best laptop":"Depends on usage: gaming, work, or creativity.",
+"what is fps":"FPS means frames per second in games.",
+"what is ui":"UI means User Interface.",
+"what is ux":"UX means User Experience.",
+"what is api":"An API lets programs communicate."
 };
 
-// -----------------------------------------------------
-// SEARCH ENGINE: Free Proxy API (No key required)
-// -----------------------------------------------------
-async function webSearch(query) {
-  try {
-    const url = "https://ddg-api.herokuapp.com/search?q=" + encodeURIComponent(query);
-    const response = await fetch(url);
-    const data = await response.json();
-
-    if (!data || data.length === 0) return null;
-
-    const top = data[0];
-    return `🌐 Internet result:\n${top.title}\n${top.snippet}\n${top.link}`;
-  } catch (e) {
-    return null;
-  }
+// --------------------
+// Block personal info
+// --------------------
+function containsPersonalInfo(text){
+  const patterns = [
+    /\b\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}\b/, // dates
+    /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/, // IP
+    /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i // email
+  ];
+  return patterns.some(p=>p.test(text));
 }
 
-// -----------------------------------------------------
-// PROCESS USER MESSAGE
-// -----------------------------------------------------
-function addMsg(text, who="bot") {
-  const m = document.createElement("div");
-  m.className = "msg " + who;
-  m.textContent = text;
+// --------------------
+// Add message
+// --------------------
+function addMessage(text,sender="bot"){
+  const m=document.createElement("div");
+  m.className="msg "+sender;
+  m.textContent=text;
   document.getElementById("messages").appendChild(m);
-  const box = document.getElementById("messages");
-  box.scrollTop = box.scrollHeight;
+  document.getElementById("messages").scrollTop=document.getElementById("messages").scrollHeight;
 }
 
-async function sendMsg() {
-  const input = document.getElementById("input");
-  const text = input.value.trim();
-  if (!text) return;
-  input.value = "";
+// --------------------
+// Send message
+// --------------------
+async function sendMessage(){
+  const input=document.getElementById("userInput");
+  let text=input.value.trim();
+  if(!text) return;
+  input.value="";
 
-  addMsg(text, "user");
-
-  const cleaned = text.toLowerCase().replace(/[^a-z0-9 ]/g, "");
-
-  // 1) FAQ
-  if (FAQ[cleaned]) {
-    addMsg(FAQ[cleaned], "bot");
+  if(containsPersonalInfo(text)){
+    addMessage("Airo Intelligence cannot process personal information such as emails, IP addresses, or birth dates.","bot");
     return;
   }
 
-  // 2) Internet search
-  addMsg("🔎 Searching the web...", "bot");
-  const result = await webSearch(text);
+  addMessage(text,"user");
 
-  if (result) {
-    addMsg(result, "bot");
-  } else {
-    addMsg("❌ Airo Assistant could not find anything.", "bot");
+  const cleaned=text.toLowerCase().replace(/[^a-z0-9 ]/g,"");
+
+  // 1) FAQ
+  if(FAQ[cleaned]){
+    addMessage(FAQ[cleaned],"bot");
+    return;
+  }
+
+  // 2) Wikipedia fallback using MediaWiki extracts API
+  addMessage("Airo Intelligence is loading…","bot");
+
+  try{
+    const apiUrl="https://en.wikipedia.org/w/api.php?action=query&prop=extracts&explaintext=true&format=json&titles="+encodeURIComponent(cleaned)+"&origin=*";
+    const res = await fetch(apiUrl);
+    if(res.ok){
+      const data = await res.json();
+      const pages = data.query.pages;
+      const page = pages[Object.keys(pages)[0]];
+      if(page && page.extract){
+        addMessage(page.extract+"\n\n(Read more: https://en.wikipedia.org/?curid="+page.pageid+")","bot");
+      }else{
+        addMessage("Airo Intelligence could not find information on that topic.","bot");
+      }
+    }else{
+      addMessage("Airo Intelligence could not find information on that topic.","bot");
+    }
+  }catch(e){
+    addMessage("Airo Intelligence encountered an error fetching Wikipedia.","bot");
   }
 }
 
+// Enter key support
+document.getElementById("userInput").addEventListener("keypress",function(e){
+  if(e.key==="Enter") sendMessage();
+});
 </script>
-
 </body>
 </html>
