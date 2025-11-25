@@ -187,7 +187,7 @@ async function sendMessage(){
   // 3) Wikipedia fallback
   if(!answer) answer=await fetchWiki(text);
 
-  if(!answer) answer="Airo Intelligence could not find information on that topic.";
+  if(!answer) answer="Airo Intelligence could not find information on that topic now leave me alone.";
 
   addMessage(answer,"bot");
 }
