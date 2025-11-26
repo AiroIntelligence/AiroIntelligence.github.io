@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Airo Intelligence</title>
+
+<style>
+  body {
+    margin:0;
+    padding:0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #001f3f, #004080, #0074D9);
+    color:white;
+    overflow:hidden;
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+  }
+
+  #header {
+    padding:12px;
+    text-align:center;
+    font-size:22px;
+    font-weight:bold;
+    background:rgba(0,0,0,0.25);
+    backdrop-filter:blur(4px);
+  }
+
+  #chat {
+    flex:1;
+    overflow-y:auto;
+    padding:20px;
+  }
+
+  .msg {
+    max-width:80%;
+    padding:12px 16px;
+    margin-bottom:14px;
+    border-radius:12px;
+    white-space:pre-wrap;
+    line-height:1.4;
+  }
+
+  .user {
+    background:#0066cc;
+    margin-left:auto;
+  }
+
+  .bot {
+    background:#003366;
+    margin-right:auto;
+  }
+
+  #input-area {
+    display:flex;
+    padding:10px;
+    gap:10px;
+    background:rgba(0,0,0,0.3);
+  }
+
+  #input {
+    flex:1;
+    padding:14px;
+    border-radius:10px;
+    border:none;
+    outline:none;
+    background:#004080;
+    color:white;
+  }
+
+  button {
+    padding:14px 18px;
+    border:none;
+    border-radius:10px;
+    background:#0099ff;
+    color:white;
+    cursor:pointer;
+    font-weight:bold;
+  }
+
+  button:hover {
+    background:#33bbff;
+  }
+</style>
+</head>
+
+<body>
+<div id="header">Airo Intelligence</div>
+
+<div id="chat"></div>
+
+<div id="input-area">
+  <input id="input" placeholder="Ask Airo Intelligence anything...">
+  <button onclick="sendMsg()">Send</button>
+</div>
+
+<script>
+// -----------------------------
+// Airo Intelligence Settings
+// -----------------------------
+const OPENROUTER_KEY = "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";  // <-- PUT KEY INSIDE QUOTES
+const MODEL = "google/gemma-2-9b-it";
+
+// -----------------------------
+// Premade FAQ (50+ entries)
+// -----------------------------
+const FAQ = {
+"why is the sky blue": "Because molecules in the atmosphere scatter blue light more efficiently than red.",
+"what is ai": "Artificial Intelligence is the simulation of human intelligence in machines.",
+"what is airo intelligence": "Airo Intelligence is your personal AI assistant with knowledge, reasoning and memory.",
+"tell me a joke": "Why don't skeletons fight each other? They don't have the guts.",
+"what is html": "HTML is the markup language used to structure web pages.",
+"what is css": "CSS controls the appearance and styling of web pages.",
+"what is javascript": "JavaScript is the programming language of the web.",
+"what is a cpu": "A CPU is the brain of the computer that processes instructions.",
+"what is ram": "RAM is fast temporary memory used by active programs.",
+"what is ssd": "An SSD is fast storage with no moving parts.",
+"what is wifi": "WiFi allows devices to connect wirelessly to networks.",
+"what is router": "A router sends and receives network traffic.",
+"what is ip address": "An IP address identifies a device on the internet.",
+"what is youtube": "YouTube is a video-sharing platform.",
+"what is twitch": "Twitch is a live-streaming site for gamers.",
+"what is minecraft": "Minecraft is a block-building survival game.",
+"what is roblox": "Roblox is a platform that lets users create and play games.",
+"what is vpn": "A VPN encrypts your connection for privacy.",
+"what is dns": "DNS translates domain names into IP addresses.",
+"what is gpu": "A GPU handles graphics and parallel computation.",
+"what is motherboard": "The motherboard connects all computer components.",
+"what is smartphone": "A smartphone is a mobile device with advanced OS and apps.",
+"what is cryptocurrency": "Cryptocurrency is digital money secured by cryptography.",
+"what is bitcoin": "Bitcoin is the first decentralized cryptocurrency.",
+"what is linux": "Linux is an open-source operating system.",
+"what is windows": "Windows is an OS by Microsoft.",
+"what is android": "Android is Google's mobile OS.",
+"what is ios": "iOS is Apple's mobile OS.",
+"what is api": "An API allows different software systems to communicate.",
+"what is cloud": "Cloud computing hosts data and services on remote servers.",
+"why do we dream": "Dreams may help process memories and emotions.",
+"why do cats purr": "Cats purr to relax, communicate, and self-heal.",
+"why do dogs wag their tails": "Dogs wag to express emotion and communicate.",
+"what is love": "Love is a complex emotional and neurochemical connection.",
+"what is gravity": "Gravity is the force that attracts bodies with mass.",
+"why do we sleep": "Sleep restores the brain and body.",
+"what is the universe": "The universe contains all space, matter, and energy.",
+"what is black hole": "A black hole is a region where gravity is extremely strong.",
+"what is galaxy": "A galaxy is a massive system of stars, gas, and dark matter.",
+"what is star": "A star is a giant sphere of plasma undergoing fusion.",
+"what is solar system": "The solar system includes the Sun and its orbiting bodies.",
+"what is hydrogen": "Hydrogen is the lightest element.",
+"what is oxygen": "Oxygen is essential for human respiration.",
+"why is fire hot": "Fire is hot because combustion releases heat energy.",
+"what is water": "Water is H₂O, essential for life.",
+"why do we eat": "We eat to get energy and nutrients.",
+"why do we age": "Aging results from cellular damage over time.",
+"what is memory": "Memory stores and recalls information.",
+"what is time": "Time is the continued progression of existence."
+};
+
+// -----------------------------
+// Chat Display
+// -----------------------------
+function addMsg(text, sender="bot") {
+  const chat = document.getElementById("chat");
+  const div = document.createElement("div");
+  div.className = "msg " + sender;
+  div.textContent = text;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+
+  saveHistory();
+}
+
+// -----------------------------
+// Save conversation locally
+// -----------------------------
+function saveHistory() {
+  localStorage.setItem("airo_history", document.getElementById("chat").innerHTML);
+}
+
+function loadHistory() {
+  const h = localStorage.getItem("airo_history");
+  if (h) document.getElementById("chat").innerHTML = h;
+}
+loadHistory();
+
+// -----------------------------
+// Send Message
+// -----------------------------
+async function sendMsg() {
+  const input = document.getElementById("input");
+  const text = input.value.trim();
+  if (!text) return;
+
+  addMsg(text, "user");
+  input.value = "";
+
+  const clean = text.toLowerCase();
+
+  // FAQ first
+  if (FAQ[clean]) {
+    addMsg(FAQ[clean], "bot");
+    return;
+  }
+
+  addMsg("Airo Intelligence is thinking...", "bot");
+
+  // Try AI
+  const aiResponse = await askAI(text);
+  if (aiResponse && aiResponse.length > 1) {
+    addMsg(aiResponse, "bot");
+    return;
+  }
+
+  // Fallback: DuckDuckGo
+  const ddg = await searchDDG(text);
+  if (ddg) {
+    addMsg(ddg, "bot");
+    return;
+  }
+
+  addMsg("Airo Intelligence couldn't find an answer.", "bot");
+}
+
+// -----------------------------
+// Ask OpenRouter AI
+// -----------------------------
+async function askAI(message) {
+  try {
+    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization":"Bearer " + OPENROUTER_KEY
+      },
+      body:JSON.stringify({
+        model: MODEL,
+        messages:[{role:"user", content:message}]
+      })
+    });
+
+    const data = await res.json();
+    return data?.choices?.[0]?.message?.content || null;
+
+  } catch (e) {
+    return null;
+  }
+}
+
+// -----------------------------
+// DuckDuckGo fallback
+// -----------------------------
+async function searchDDG(q) {
+  try {
+    const url = "https://api.allorigins.win/raw?url=" +
+      encodeURIComponent("https://api.duckduckgo.com/?q="+q+"&format=json&no_redirect=1&no_html=1");
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (data.Abstract && data.Abstract.length > 3)
+      return data.Abstract;
+
+    if (data.RelatedTopics && data.RelatedTopics.length > 0)
+      return data.RelatedTopics[0].Text;
+
+    return null;
+
+  } catch (e) {
+    return null;
+  }
+}
+
+// Enter to send
+document.getElementById("input").addEventListener("keypress", e => {
+  if (e.key === "Enter") sendMsg();
+});
+</script>
+
+</body>
+</html>
