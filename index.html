@@ -36,7 +36,7 @@ button:hover {background:#33bbff;}
 
 <script>
 // --------------------
-// 50 premade FAQs (extendable)
+// 50 premade FAQs
 // --------------------
 const FAQ = {
 "what is airo intelligence":"Airo Intelligence is your intelligent helper for general knowledge and FAQs.",
@@ -86,15 +86,6 @@ const FAQ = {
 "why does it rain":"Rain occurs when condensed water vapor falls from clouds.",
 "how does photosynthesis work":"Photosynthesis converts sunlight, CO2, and water into energy for plants."
 };
-
-// --------------------
-// Jokes
-// --------------------
-const JOKES = [
-"Airo Intelligence says: Why did the computer show up at work late? It had a hard drive!",
-"Airo Intelligence says: Why do programmers prefer dark mode? Because light attracts bugs!",
-"Airo Intelligence says: Why did the AI go to school? To improve its neural networking!"
-];
 
 // --------------------
 // Block personal info
@@ -149,6 +140,56 @@ async function fetchWiki(query){
 }
 
 // --------------------
+// JokeAPI
+// --------------------
+async function fetchJoke(){
+  try{
+    const res=await fetch("https://v2.jokeapi.dev/joke/Any?type=single");
+    if(!res.ok) return null;
+    const data=await res.json();
+    return data.joke || null;
+  }catch(e){return null;}
+}
+
+// --------------------
+// DictionaryAPI
+// --------------------
+async function fetchDefinition(word){
+  try{
+    const res=await fetch("https://api.dictionaryapi.dev/api/v2/entries/en/"+encodeURIComponent(word));
+    if(!res.ok) return null;
+    const data=await res.json();
+    if(data[0]?.meanings?.[0]?.definitions?.[0]?.definition)
+      return data[0].meanings[0].definitions[0].definition;
+    return null;
+  }catch(e){return null;}
+}
+
+// --------------------
+// Countries API
+// --------------------
+async function fetchCountry(query){
+  try{
+    let countryName=query;
+    const match=query.match(/capital of (.+)/i);
+    const wantCapital=!!match;
+    if(match) countryName=match[1];
+
+    const res=await fetch("https://restcountries.com/v3.1/name/"+encodeURIComponent(countryName));
+    if(!res.ok) return null;
+    const data=await res.json();
+    if(data[0]){
+      if(wantCapital){
+        return `The capital of ${data[0].name.common} is ${data[0].capital ? data[0].capital[0] : "N/A"}.`;
+      }else{
+        return `Country: ${data[0].name.common}, Capital: ${data[0].capital ? data[0].capital[0] : "N/A"}, Population: ${data[0].population.toLocaleString()}`;
+      }
+    }
+    return null;
+  }catch(e){return null;}
+}
+
+// --------------------
 // Send message
 // --------------------
 async function sendMessage(){
@@ -172,22 +213,30 @@ async function sendMessage(){
     return;
   }
 
-  // 1.5) Joke support
+  // 2) Joke support
   if(cleaned.includes("joke") || cleaned.includes("tell me a joke")){
-    const joke = JOKES[Math.floor(Math.random()*JOKES.length)];
-    addMessage(joke,"bot");
+    const joke=await fetchJoke();
+    addMessage(joke || "Airo Intelligence couldn't find a joke right now.","bot");
     return;
   }
 
   addMessage("Airo Intelligence is loading...","bot");
 
-  // 2) DuckDuckGo
-  let answer=await fetchDuck(text);
+  let answer=null;
 
-  // 3) Wikipedia fallback
+  // 3) Dictionary
+  answer=await fetchDefinition(text);
+
+  // 4) Countries
+  if(!answer) answer=await fetchCountry(text);
+
+  // 5) DuckDuckGo
+  if(!answer) answer=await fetchDuck(text);
+
+  // 6) Wikipedia fallback
   if(!answer) answer=await fetchWiki(text);
 
-  if(!answer) answer="Airo Intelligence could not find information on that topic now leave me alone.";
+  if(!answer) answer="Airo Intelligence could not find information on that topic now.";
 
   addMessage(answer,"bot");
 }
